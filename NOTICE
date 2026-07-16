@@ -13,3 +13,7 @@ research; its code is not incorporated into this implementation.
 This project depends on WebRTC binaries packaged by stasel/WebRTC and on the
 Swifter HTTP/WebSocket server. Both are distributed under BSD 3-Clause terms;
 their full license notices are available in the dependency distributions.
+
+The Chromium helper uses Electron, Express, Socket.IO, simple-peer,
+pixelmatch, and esbuild. Their notices are available in installed npm packages.
+It is an original implementation and does not incorporate Deskreen code.
