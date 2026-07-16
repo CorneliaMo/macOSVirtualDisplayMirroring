@@ -16,16 +16,18 @@ public final class WebRTCSession: NSObject, @unchecked Sendable {
     private var pendingCandidates: [RTCIceCandidate] = []
     private var remoteDescriptionSet = false
 
-    public init(bitrate: Int, signal: @escaping SignalHandler) {
+    public init(width: Int, height: Int, fps: Int, bitrate: Int, signal: @escaping SignalHandler) {
         RTCInitializeSSL()
         let encoder = RTCDefaultVideoEncoderFactory()
         let decoder = RTCDefaultVideoDecoderFactory()
         factory = RTCPeerConnectionFactory(encoderFactory: encoder, decoderFactory: decoder)
-        source = factory.videoSource()
-        capturer = RTCVideoCapturer(delegate: source)
+        let videoSource = factory.videoSource()
+        source = videoSource
+        capturer = RTCVideoCapturer(delegate: videoSource)
         self.bitrate = bitrate
         self.signal = signal
         super.init()
+        videoSource.adaptOutputFormat(toWidth: Int32(width), height: Int32(height), fps: Int32(fps))
     }
 
     deinit { RTCCleanupSSL() }

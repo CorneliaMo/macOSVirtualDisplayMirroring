@@ -26,7 +26,8 @@ public final class StreamCoordinator {
                                    onConnected: { state.viewerConnected = true; sessionBox.session?.start() },
                                    onDisconnected: { state.viewerConnected = false; sessionBox.session?.stop() })
         do {
-            let webRTC = WebRTCSession(bitrate: configuration.bitrate) { serverBox.server?.send($0) }
+            let webRTC = WebRTCSession(width: width, height: height, fps: configuration.fps,
+                                       bitrate: configuration.bitrate) { serverBox.server?.send($0) }
             sessionBox.session = webRTC; serverBox.server = server
             self.webRTC = webRTC; self.server = server
             try server.start(port: configuration.port)
