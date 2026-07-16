@@ -1,5 +1,7 @@
 import Foundation
 
+public enum StreamBackend: String, Sendable, Equatable { case chromium, native }
+
 public struct StreamConfiguration: Sendable, Equatable {
     public var name = "Network Virtual Display"
     public var width = 1920
@@ -10,6 +12,8 @@ public struct StreamConfiguration: Sendable, Equatable {
     public var bitrate = 500_000_000
     public var port: UInt16 = 8080
     public var showCursor = true
+    public var backend: StreamBackend = .chromium
+    public var chromiumDirectory = "ChromiumStreamer"
 
     public init() {}
 }
@@ -52,6 +56,8 @@ public enum CLIParser {
       --bitrate <bits/sec>   SDP video bandwidth (default: 500000000)
       --port <1-65535>       HTTP port (default: 8080)
       --hide-cursor          Do not capture the cursor
+      --backend <name>       chromium (default) or native
+      --chromium-directory <path>  Chromium helper directory (default: ChromiumStreamer)
       --help                 Show this help
     """
 
@@ -67,6 +73,10 @@ public enum CLIParser {
             case "--help", "-h": return .help
             case "--hidpi": value.hiDPI = true
             case "--hide-cursor": value.showCursor = false
+            case "--backend":
+                let raw = try next(option); guard let backend = StreamBackend(rawValue: raw) else { throw CLIError.invalidValue(option, raw) }
+                value.backend = backend; index += 1
+            case "--chromium-directory": value.chromiumDirectory = try next(option); index += 1
             case "--name": value.name = try next(option); index += 1
             case "--width": value.width = try positiveInt(next(option), option); index += 1
             case "--height": value.height = try positiveInt(next(option), option); index += 1
@@ -87,6 +97,7 @@ public enum CLIParser {
         guard value.width.isMultiple(of: 2) else { throw CLIError.invalidValue("--width", String(value.width)) }
         guard value.height.isMultiple(of: 2) else { throw CLIError.invalidValue("--height", String(value.height)) }
         guard !value.name.isEmpty else { throw CLIError.invalidValue("--name", value.name) }
+        guard !value.chromiumDirectory.isEmpty else { throw CLIError.invalidValue("--chromium-directory", value.chromiumDirectory) }
         return .run(value)
     }
 

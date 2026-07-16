@@ -4,6 +4,7 @@ public enum StreamError: Error, LocalizedError {
     case privateAPIUnavailable(String), displayCreationFailed, displaySettingsFailed
     case displayRegistrationTimedOut, screenCapturePermissionDenied
     case captureCreationFailed, captureStopped(String), webRTC(String), listener(String), signaling(String)
+    case chromiumHelper(String)
 
     public var errorDescription: String? {
         switch self {
@@ -17,6 +18,7 @@ public enum StreamError: Error, LocalizedError {
         case .webRTC(let reason): "WebRTC error: \(reason)."
         case .listener(let reason): "HTTP listener error: \(reason)."
         case .signaling(let reason): "Signaling error: \(reason)."
+        case .chromiumHelper(let reason): "Chromium streamer error: \(reason)."
         }
     }
 }

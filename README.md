@@ -1,24 +1,26 @@
 # virtual-display-stream
 
-An experimental macOS 15 command-line MVP that creates one virtual display and streams it to a browser over WebRTC. Signaling and the viewer page use unencrypted HTTP/WebSocket, so it is intended only for a trusted LAN. The virtual display uses private CoreGraphics APIs and is not suitable for the Mac App Store.
+An experimental macOS 15 command-line MVP that creates one virtual display and streams it to a browser over WebRTC. The default backend delegates capture and WebRTC to Chromium while Swift owns the virtual-display lifecycle. Signaling and the viewer page use unencrypted HTTP/WebSocket, so it is intended only for a trusted LAN.
 
 ## Requirements
 
 - Apple Silicon Mac running macOS 15
 - Xcode 16 command-line tools
-- Screen Recording permission for the terminal or executable
+- Node.js and npm for the default Chromium backend
+- Screen Recording permission for Electron when using the default backend, or for the executable when using `--backend native`
 - A current Safari, Chrome, Firefox, or Edge browser on the viewing device
 
 ## Build and run
 
 ```bash
+cd ChromiumStreamer && npm install && npm run build && cd ..
 swift build -c release
-.build/release/virtual-display-stream --width 1920 --height 1080 --fps 60 --bitrate 500000000 --port 8080
+.build/release/virtual-display-stream --backend chromium --width 1920 --height 1080 --fps 60 --port 8080
 ```
 
 The command prints viewer URLs for active non-loopback IPv4 interfaces. Open `http://<Mac-IP>:8080/` on another device in the trusted LAN. The page connects automatically and exposes live WebRTC receiver statistics—including codec, decode time, recent-interval playout-buffer delay, browser target/minimum buffer delay when available, and dropped frames—fullscreen (button or `F`), and manual reconnect controls.
 
-Capture and WebRTC delivery favor latency over frame completeness: ScreenCaptureKit uses its minimum supported three-frame surface pool, while the sender retains only the latest frame when delivery falls behind. VP8 is preferred to match Deskreen's usual Chromium negotiation; degradation behavior remains under WebRTC's native congestion control.
+The helper uses Chromium `desktopCapturer`/`getUserMedia` and `simple-peer`, with 100%, 50%, and motion-sensitive Auto quality modes. Use `--chromium-directory <path>` when launching outside the repository root. The earlier ScreenCaptureKit/libwebrtc path remains available through `--backend native`.
 
 Use `virtual-display-stream --help` for display, WebRTC SDP bandwidth, port, HiDPI, and cursor options. Defaults follow Deskreen's LAN-oriented profile: 60 FPS, an effectively unrestricted 500 Mbps SDP video bandwidth, VP8 preference, and no STUN/TURN servers. Only one browser viewer is supported. `/healthz` provides basic JSON status.
 

@@ -2,7 +2,7 @@ import CoreGraphics
 import Foundation
 
 @MainActor
-public final class StreamCoordinator {
+public final class NativeStreamCoordinator {
     private let display = VirtualDisplaySession()
     private let capture = DisplayCapture()
     private var webRTC: WebRTCSession?
@@ -39,6 +39,30 @@ public final class StreamCoordinator {
 
     public func stop() async {
         server?.stop(); server = nil; await capture.stop(); webRTC?.stop(); webRTC = nil; display.stop()
+    }
+}
+
+@MainActor
+public final class StreamCoordinator {
+    private var native: NativeStreamCoordinator?
+    private var chromium: ChromiumStreamCoordinator?
+
+    public init() {}
+
+    public func start(_ configuration: StreamConfiguration) async throws -> HealthSnapshot {
+        switch configuration.backend {
+        case .native:
+            let coordinator = NativeStreamCoordinator(); native = coordinator
+            return try await coordinator.start(configuration)
+        case .chromium:
+            let coordinator = ChromiumStreamCoordinator(); chromium = coordinator
+            return try await coordinator.start(configuration)
+        }
+    }
+
+    public func stop() async {
+        await native?.stop(); native = nil
+        chromium?.stop(); chromium = nil
     }
 }
 

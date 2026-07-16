@@ -21,7 +21,7 @@ struct VirtualDisplayStreamCommand {
     private static func run(_ configuration: StreamConfiguration) async throws {
         let coordinator = StreamCoordinator()
         let health = try await coordinator.start(configuration)
-        print("Virtual display \(health.displayID) is streaming \(health.width)x\(health.height) @ \(health.fps) fps.")
+        print("Virtual display \(health.displayID) is streaming \(health.width)x\(health.height) @ \(health.fps) fps using \(configuration.backend.rawValue).")
         let addresses = localIPv4Addresses()
         for address in addresses {
             let url = "http://\(address):\(configuration.port)/"
