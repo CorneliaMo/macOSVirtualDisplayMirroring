@@ -41,7 +41,9 @@ public final class DisplayCapture: @unchecked Sendable {
             configuration.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(fps))
             configuration.showsCursor = showCursor
             configuration.pixelFormat = kCVPixelFormatType_32BGRA
-            configuration.queueDepth = 1
+            // ScreenCaptureKit requires a surface pool of at least three frames.
+            // Stale-frame dropping happens in LatestValueMailbox instead.
+            configuration.queueDepth = 3
 
             let output = DisplayStreamOutput(onFrame: onFrame)
             let stream = SCStream(filter: filter, configuration: configuration, delegate: nil)
