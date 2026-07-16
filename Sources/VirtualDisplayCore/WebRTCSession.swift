@@ -97,7 +97,11 @@ public final class WebRTCSession: NSObject, @unchecked Sendable {
             return
         }
         let parameters = sender.parameters
-        parameters.encodings.first?.maxBitrateBps = NSNumber(value: bitrate)
+        parameters.degradationPreference = NSNumber(value: RTCDegradationPreference.maintainResolution.rawValue)
+        if let encoding = parameters.encodings.first {
+            encoding.scaleResolutionDownBy = NSNumber(value: 1.0)
+            encoding.maxBitrateBps = NSNumber(value: bitrate)
+        }
         sender.parameters = parameters
         peer.offer(for: constraints) { description, error in
             self.queue.async {
