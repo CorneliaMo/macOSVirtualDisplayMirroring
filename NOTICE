@@ -1,0 +1,11 @@
+This project includes private CoreGraphics API declarations and implementation
+patterns derived from these MIT-licensed projects:
+
+- DeskPad, copyright Bastian Andelefski and contributors
+  https://github.com/Stengo/DeskPad
+- VirtualDisplayKit, copyright Dustin Nielson and contributors
+  https://github.com/xocialize/VirtualDisplayKit
+
+Their copyright notices are preserved in this project's LICENSE file.
+Deskreen is AGPL-3.0 and was consulted only for high-level architectural
+research; its code is not incorporated into this implementation.
