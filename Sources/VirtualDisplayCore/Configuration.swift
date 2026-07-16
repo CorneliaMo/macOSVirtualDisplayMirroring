@@ -6,8 +6,8 @@ public struct StreamConfiguration: Sendable, Equatable {
     public var height = 1080
     public var refreshRate = 60.0
     public var hiDPI = false
-    public var fps = 30
-    public var bitrate = 12_000_000
+    public var fps = 60
+    public var bitrate = 500_000_000
     public var port: UInt16 = 8080
     public var showCursor = true
 
@@ -48,8 +48,8 @@ public enum CLIParser {
       --height <pixels>      Even display height (default: 1080)
       --refresh-rate <hz>    Refresh rate (default: 60)
       --hidpi                Enable HiDPI mode
-      --fps <frames>         Encoder frame rate (default: 30)
-      --bitrate <bits/sec>   Encoder bitrate (default: 12000000)
+      --fps <frames>         Encoder frame rate (default: 60)
+      --bitrate <bits/sec>   SDP video bandwidth (default: 500000000)
       --port <1-65535>       HTTP port (default: 8080)
       --hide-cursor          Do not capture the cursor
       --help                 Show this help

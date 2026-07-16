@@ -4,7 +4,8 @@ import Testing
 @Test func defaults() throws {
     guard case .run(let value) = try CLIParser.parse([]) else { Issue.record("expected run"); return }
     #expect(value == StreamConfiguration())
-    #expect(value.bitrate == 12_000_000)
+    #expect(value.fps == 60)
+    #expect(value.bitrate == 500_000_000)
 }
 
 @Test func parsesAllOptions() throws {

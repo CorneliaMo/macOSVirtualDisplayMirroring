@@ -85,29 +85,27 @@ public final class WebRTCSession: NSObject, @unchecked Sendable {
         }
         self.peer = peer
         let track = factory.videoTrack(with: source, trackId: "virtual-display-video")
-        guard let sender = peer.add(track, streamIds: ["virtual-display"]) else {
+        guard peer.add(track, streamIds: ["virtual-display"]) != nil else {
             peer.close()
             self.peer = nil
             fail("video sender creation failed")
             return
         }
         frames.activate()
-        let parameters = sender.parameters
-        parameters.degradationPreference = NSNumber(value: RTCDegradationPreference.maintainResolution.rawValue)
-        if let encoding = parameters.encodings.first {
-            encoding.scaleResolutionDownBy = NSNumber(value: 1.0)
-            encoding.maxBitrateBps = NSNumber(value: bitrate)
-        }
-        sender.parameters = parameters
         peer.offer(for: constraints) { description, error in
             self.queue.async {
                 guard self.peer === peer else { return }
                 guard let description else { self.fail(error?.localizedDescription ?? "offer creation failed"); return }
-                peer.setLocalDescription(description) { error in
+                let bandwidthSDP = SDPTransform.settingVideoBandwidth(
+                    description.sdp, kilobitsPerSecond: self.bitrate / 1_000
+                )
+                let transformed = RTCSessionDescription(type: description.type,
+                                                        sdp: SDPTransform.preferringVP8(bandwidthSDP))
+                peer.setLocalDescription(transformed) { error in
                     self.queue.async {
                         guard self.peer === peer else { return }
                         if let error { self.fail(error.localizedDescription); return }
-                        self.signal(.init(type: .offer, sdp: description.sdp))
+                        self.signal(.init(type: .offer, sdp: transformed.sdp))
                     }
                 }
             }
