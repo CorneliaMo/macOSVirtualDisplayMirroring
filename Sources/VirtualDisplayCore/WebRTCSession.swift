@@ -88,7 +88,12 @@ public final class WebRTCSession: NSObject, @unchecked Sendable {
         }
         self.peer = peer
         let track = factory.videoTrack(with: source, trackId: "virtual-display-video")
-        let sender = peer.add(track, streamIds: ["virtual-display"])
+        guard let sender = peer.add(track, streamIds: ["virtual-display"]) else {
+            peer.close()
+            self.peer = nil
+            fail("video sender creation failed")
+            return
+        }
         let parameters = sender.parameters
         parameters.encodings.first?.maxBitrateBps = NSNumber(value: bitrate)
         sender.parameters = parameters
