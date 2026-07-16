@@ -22,6 +22,8 @@ The command prints viewer URLs for active non-loopback IPv4 interfaces. Open `ht
 
 The helper uses Chromium `desktopCapturer`/`getUserMedia` and `simple-peer`, with 100%, 50%, and motion-sensitive Auto quality modes. Use `--chromium-directory <path>` when launching outside the repository root. The earlier ScreenCaptureKit/libwebrtc path remains available through `--backend native`.
 
+If Electron reports an incomplete installation, rerun `npm install` in `ChromiumStreamer`. The launcher uses Electron's supported CLI entry point instead of assuming a version-specific `.app` layout.
+
 Use `virtual-display-stream --help` for display, WebRTC SDP bandwidth, port, HiDPI, and cursor options. Defaults follow Deskreen's LAN-oriented profile: 60 FPS, an effectively unrestricted 500 Mbps SDP video bandwidth, VP8 preference, and no STUN/TURN servers. Only one browser viewer is supported. `/healthz` provides basic JSON status.
 
 ## Permissions and limitations

@@ -16,17 +16,17 @@ public final class ChromiumStreamCoordinator {
             let directory = URL(fileURLWithPath: configuration.chromiumDirectory, relativeTo: URL(fileURLWithPath: FileManager.default.currentDirectoryPath)).standardizedFileURL
             let manifest = directory.appendingPathComponent("package.json")
             guard FileManager.default.fileExists(atPath: manifest.path) else { throw StreamError.chromiumHelper("package.json not found at \(manifest.path)") }
-            let executable = directory.appendingPathComponent("node_modules/electron/dist/Electron.app/Contents/MacOS/Electron")
-            guard FileManager.default.isExecutableFile(atPath: executable.path) else {
-                throw StreamError.chromiumHelper("Electron is not installed at \(executable.path); run npm install and npm run build in \(directory.path)")
+            let electronCLI = directory.appendingPathComponent("node_modules/electron/cli.js")
+            guard FileManager.default.fileExists(atPath: electronCLI.path) else {
+                throw StreamError.chromiumHelper("Electron's CLI is missing at \(electronCLI.path); run npm install in \(directory.path)")
             }
             let viewerBundle = directory.appendingPathComponent("dist/viewer.js")
             guard FileManager.default.fileExists(atPath: viewerBundle.path) else {
                 throw StreamError.chromiumHelper("Chromium bundles are missing; run npm run build in \(directory.path)")
             }
             let child = Process()
-            child.executableURL = executable
-            child.arguments = [directory.path, "--display-id", String(displayID), "--port", String(configuration.port),
+            child.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+            child.arguments = ["node", electronCLI.path, directory.path, "--display-id", String(displayID), "--port", String(configuration.port),
                                "--width", String(width), "--height", String(height), "--fps", String(configuration.fps)]
             child.standardOutput = FileHandle.standardOutput; child.standardError = FileHandle.standardError
             try child.run(); process = child
