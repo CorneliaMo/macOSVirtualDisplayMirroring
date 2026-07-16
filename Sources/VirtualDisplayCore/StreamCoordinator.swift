@@ -28,14 +28,14 @@ public final class StreamCoordinator {
             }
             encoderBox.encoder = encoder; self.encoder = encoder; self.server = server
             try server.start(port: configuration.port)
-            try capture.start(displayID: displayID, width: width, height: height, fps: configuration.fps,
+            try await capture.start(displayID: displayID, width: width, height: height, fps: configuration.fps,
                               showCursor: configuration.showCursor) { [weak encoder] buffer, pts in encoder?.encode(buffer, presentationTime: pts) }
             return snapshot
-        } catch { stop(); throw error }
+        } catch { await stop(); throw error }
     }
 
-    public func stop() {
-        server?.stop(); server = nil; capture.stop(); encoder?.stop(); encoder = nil; display.stop()
+    public func stop() async {
+        server?.stop(); server = nil; await capture.stop(); encoder?.stop(); encoder = nil; display.stop()
     }
 }
 

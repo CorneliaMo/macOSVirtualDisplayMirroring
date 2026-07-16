@@ -57,11 +57,12 @@ public final class H264Encoder: @unchecked Sendable {
     deinit { stop() }
     public func requestKeyFrame() { queue.async { self.forceKeyFrame = true } }
     public func encode(_ pixelBuffer: CVPixelBuffer, presentationTime: CMTime) {
+        let pixelBuffer = PixelBufferBox(pixelBuffer)
         queue.async {
             guard let session = self.session else { return }
             let properties = self.forceKeyFrame ? [kVTEncodeFrameOptionKey_ForceKeyFrame: true] as CFDictionary : nil
             self.forceKeyFrame = false
-            let status = VTCompressionSessionEncodeFrame(session, imageBuffer: pixelBuffer, presentationTimeStamp: presentationTime,
+            let status = VTCompressionSessionEncodeFrame(session, imageBuffer: pixelBuffer.value, presentationTimeStamp: presentationTime,
                 duration: .invalid, frameProperties: properties, sourceFrameRefcon: nil, infoFlagsOut: nil)
             if status != noErr { self.output(.failure(StreamError.encoder("encode returned \(status)"))) }
         }
@@ -115,6 +116,11 @@ public final class H264Encoder: @unchecked Sendable {
             output(.success(.init(data: data, isKeyFrame: keyFrame, presentationTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))))
         } catch { output(.failure(error)) }
     }
+}
+
+private final class PixelBufferBox: @unchecked Sendable {
+    let value: CVPixelBuffer
+    init(_ value: CVPixelBuffer) { self.value = value }
 }
 
 private let encoderCallback: VTCompressionOutputCallback = { refcon, _, status, flags, sampleBuffer in

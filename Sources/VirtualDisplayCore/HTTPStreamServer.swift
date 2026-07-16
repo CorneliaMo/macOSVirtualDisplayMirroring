@@ -127,7 +127,7 @@ public final class HTTPStreamServer: @unchecked Sendable {
     }
 
     private func clearViewer(_ connection: NWConnection?) {
-        guard let connection, let viewer, connection === viewer else { return }
+        guard let connection, let currentViewer = viewer, connection === currentViewer else { return }
         connection.cancel(); viewer = nil; viewerReady = false; sending = false; pending = nil
     }
 

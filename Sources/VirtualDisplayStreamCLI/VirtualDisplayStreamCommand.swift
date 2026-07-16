@@ -41,7 +41,7 @@ struct VirtualDisplayStreamCommand {
             intSource.setEventHandler(handler: finish); termSource.setEventHandler(handler: finish)
             intSource.resume(); termSource.resume()
         }
-        intSource.cancel(); termSource.cancel(); coordinator.stop()
+        intSource.cancel(); termSource.cancel(); await coordinator.stop()
     }
 
     private static func localIPv4Addresses() -> [String] {

@@ -17,6 +17,7 @@ let package = Package(
                 .linkedFramework("AppKit"), .linkedFramework("CoreGraphics"),
                 .linkedFramework("CoreMedia"), .linkedFramework("CoreVideo"),
                 .linkedFramework("IOSurface"), .linkedFramework("Network"),
+                .linkedFramework("ScreenCaptureKit"),
                 .linkedFramework("VideoToolbox"),
             ]
         ),
