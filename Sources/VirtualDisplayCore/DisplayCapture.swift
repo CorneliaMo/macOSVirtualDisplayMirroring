@@ -41,7 +41,7 @@ public final class DisplayCapture: @unchecked Sendable {
             configuration.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(fps))
             configuration.showsCursor = showCursor
             configuration.pixelFormat = kCVPixelFormatType_32BGRA
-            configuration.queueDepth = 3
+            configuration.queueDepth = 1
 
             let output = DisplayStreamOutput(onFrame: onFrame)
             let stream = SCStream(filter: filter, configuration: configuration, delegate: nil)

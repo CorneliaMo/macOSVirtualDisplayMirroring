@@ -12,6 +12,7 @@ public final class WebRTCSession: NSObject, @unchecked Sendable {
     private let capturer: RTCVideoCapturer
     private let signal: SignalHandler
     private let bitrate: Int
+    private let frames = LatestValueMailbox<PendingFrame>()
     private var peer: RTCPeerConnection?
     private var pendingCandidates: [RTCIceCandidate] = []
     private var remoteDescriptionSet = false
@@ -21,7 +22,7 @@ public final class WebRTCSession: NSObject, @unchecked Sendable {
         let encoder = RTCDefaultVideoEncoderFactory()
         let decoder = RTCDefaultVideoDecoderFactory()
         factory = RTCPeerConnectionFactory(encoderFactory: encoder, decoderFactory: decoder)
-        let videoSource = factory.videoSource()
+        let videoSource = factory.videoSource(forScreenCast: true)
         source = videoSource
         capturer = RTCVideoCapturer(delegate: videoSource)
         self.bitrate = bitrate
@@ -60,23 +61,17 @@ public final class WebRTCSession: NSObject, @unchecked Sendable {
     }
 
     public func push(_ pixelBuffer: CVPixelBuffer, presentationTime: CMTime) {
-        let box = PixelBufferBox(pixelBuffer)
-        queue.async {
-            guard self.peer != nil else { return }
-            let seconds = CMTimeGetSeconds(presentationTime)
-            let timestamp = seconds.isFinite && seconds >= 0
-                ? Int64(seconds * 1_000_000_000)
-                : Int64(DispatchTime.now().uptimeNanoseconds)
-            let frame = RTCVideoFrame(buffer: RTCCVPixelBuffer(pixelBuffer: box.value), rotation: ._0, timeStampNs: timestamp)
-            self.source.capturer(self.capturer, didCapture: frame)
-        }
+        guard frames.offer(PendingFrame(pixelBuffer, presentationTime)) else { return }
+        queue.async { self.drainLatestFrame() }
     }
 
     public func stop() {
+        frames.deactivateAndClear()
         queue.sync { self.peer?.close(); self.peer = nil; self.pendingCandidates.removeAll(); self.remoteDescriptionSet = false }
     }
 
     private func createPeerAndOffer() {
+        frames.deactivateAndClear()
         peer?.close(); pendingCandidates.removeAll(); remoteDescriptionSet = false
         let configuration = RTCConfiguration()
         configuration.iceServers = []
@@ -96,6 +91,7 @@ public final class WebRTCSession: NSObject, @unchecked Sendable {
             fail("video sender creation failed")
             return
         }
+        frames.activate()
         let parameters = sender.parameters
         parameters.degradationPreference = NSNumber(value: RTCDegradationPreference.maintainResolution.rawValue)
         if let encoding = parameters.encodings.first {
@@ -126,6 +122,19 @@ public final class WebRTCSession: NSObject, @unchecked Sendable {
                 self.fail("ICE candidate rejected: \(error.localizedDescription)")
             }
         }
+    }
+
+    private func drainLatestFrame() {
+        if let pending = frames.take(), peer != nil {
+            let seconds = CMTimeGetSeconds(pending.presentationTime)
+            let timestamp = seconds.isFinite && seconds >= 0
+                ? Int64(seconds * 1_000_000_000)
+                : Int64(DispatchTime.now().uptimeNanoseconds)
+            let frame = RTCVideoFrame(buffer: RTCCVPixelBuffer(pixelBuffer: pending.pixelBuffer),
+                                      rotation: ._0, timeStampNs: timestamp)
+            source.capturer(capturer, didCapture: frame)
+        }
+        if frames.finishDrain() { queue.async { self.drainLatestFrame() } }
     }
 
     private func fail(_ message: String) { signal(.init(type: .error, message: message)) }
@@ -166,7 +175,11 @@ extension WebRTCSession: RTCPeerConnectionDelegate {
     public func peerConnection(_ peerConnection: RTCPeerConnection, didOpen dataChannel: RTCDataChannel) {}
 }
 
-private final class PixelBufferBox: @unchecked Sendable {
-    let value: CVPixelBuffer
-    init(_ value: CVPixelBuffer) { self.value = value }
+private final class PendingFrame: @unchecked Sendable {
+    let pixelBuffer: CVPixelBuffer
+    let presentationTime: CMTime
+    init(_ pixelBuffer: CVPixelBuffer, _ presentationTime: CMTime) {
+        self.pixelBuffer = pixelBuffer
+        self.presentationTime = presentationTime
+    }
 }
