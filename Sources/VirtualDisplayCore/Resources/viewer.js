@@ -2,15 +2,18 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const video = $('video'), status = $('connection');
+  const statIds = ['resolution','fps','bitrate','codec','jitter','decode','buffer','lost','dropped'];
   let socket, peer, timer, lastBytes = 0, lastAt = 0, remoteReady = false, candidates = [];
 
   function label(text, live = false) { status.textContent = text; status.classList.toggle('live', live); }
+  function resetStats() { statIds.forEach(id => { $(id).textContent = '—'; }); lastBytes = 0; lastAt = 0; }
+  function averageMs(total, count) { return Number.isFinite(total) && count > 0 ? `${(total * 1000 / count).toFixed(1)} ms` : '—'; }
   function send(value) { if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(value)); }
   async function flushCandidates() { for (const c of candidates) await peer.addIceCandidate(c); candidates = []; }
   function disconnect() {
     clearInterval(timer); timer = undefined; remoteReady = false; candidates = [];
     peer?.close(); peer = undefined; socket?.close(); socket = undefined;
-    video.srcObject = null; video.classList.remove('live'); label('DISCONNECTED');
+    video.srcObject = null; video.classList.remove('live'); resetStats(); label('DISCONNECTED');
   }
   function connect() {
     disconnect(); label('CONNECTING');
@@ -35,18 +38,26 @@
     socket.onerror = () => label('SIGNAL ERROR'); socket.onclose = () => { if (!peer) label('DISCONNECTED'); };
   }
   function startStats() {
-    clearInterval(timer); lastBytes = 0; lastAt = 0;
+    clearInterval(timer); resetStats();
     timer = setInterval(async () => {
       if (!peer) return;
       const reports = await peer.getStats();
+      const codecs = new Map();
+      reports.forEach(r => { if (r.type === 'codec') codecs.set(r.id, r); });
       reports.forEach(r => {
         if (r.type !== 'inbound-rtp' || r.kind !== 'video') return;
         $('resolution').textContent = r.frameWidth ? `${r.frameWidth} × ${r.frameHeight}` : '—';
         $('fps').textContent = r.framesPerSecond == null ? '—' : `${Math.round(r.framesPerSecond)} FPS`;
         const dt = r.timestamp - lastAt, bytes = r.bytesReceived - lastBytes;
-        $('bitrate').textContent = lastAt && dt > 0 ? `${(bytes * 8 / dt / 1000).toFixed(2)} Mbps` : '—';
+        $('bitrate').textContent = lastAt && dt > 0 && bytes >= 0 ? `${(bytes * 8 / dt / 1000).toFixed(2)} Mbps` : '—';
+        const codec = codecs.get(r.codecId);
+        $('codec').textContent = codec?.mimeType?.replace(/^video\//i, '') || '—';
         $('jitter').textContent = r.jitter == null ? '—' : `${(r.jitter * 1000).toFixed(1)} ms`;
-        $('lost').textContent = String(r.packetsLost ?? '—'); lastBytes = r.bytesReceived; lastAt = r.timestamp;
+        $('decode').textContent = averageMs(r.totalDecodeTime, r.framesDecoded);
+        $('buffer').textContent = averageMs(r.jitterBufferDelay, r.jitterBufferEmittedCount);
+        $('lost').textContent = String(r.packetsLost ?? '—');
+        $('dropped').textContent = String(r.framesDropped ?? '—');
+        lastBytes = r.bytesReceived; lastAt = r.timestamp;
       });
     }, 1000);
   }

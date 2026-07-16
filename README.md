@@ -13,10 +13,12 @@ An experimental macOS 15 command-line MVP that creates one virtual display and s
 
 ```bash
 swift build -c release
-.build/release/virtual-display-stream --width 1920 --height 1080 --fps 30 --bitrate 4000000 --port 8080
+.build/release/virtual-display-stream --width 1920 --height 1080 --fps 30 --bitrate 12000000 --port 8080
 ```
 
-The command prints viewer URLs for active non-loopback IPv4 interfaces. Open `http://<Mac-IP>:8080/` on another device in the trusted LAN. The page connects automatically and exposes live WebRTC receiver statistics, fullscreen (button or `F`), and manual reconnect controls.
+The command prints viewer URLs for active non-loopback IPv4 interfaces. Open `http://<Mac-IP>:8080/` on another device in the trusted LAN. The page connects automatically and exposes live WebRTC receiver statistics—including codec, decode time, playout-buffer delay, and dropped frames—fullscreen (button or `F`), and manual reconnect controls.
+
+Capture and WebRTC delivery favor latency over frame completeness: ScreenCaptureKit keeps one queued frame, and the sender retains only the latest frame when delivery falls behind. Resolution remains fixed; under load, WebRTC should drop frames instead of accumulating stale video.
 
 Use `virtual-display-stream --help` for display, WebRTC bitrate, port, HiDPI, and cursor options. Only one browser viewer is supported. `/healthz` provides basic JSON status.
 
