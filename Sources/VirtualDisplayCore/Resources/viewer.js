@@ -6,7 +6,7 @@
   let socket, peer, timer, lastBytes = 0, lastAt = 0, remoteReady = false, candidates = [];
 
   function label(text, live = false) { status.textContent = text; status.classList.toggle('live', live); }
-  function resetStats() { statIds.forEach(id => { $(id).textContent = '—'; }); lastBytes = 0; lastAt = 0; }
+  function resetStats() { statIds.forEach(id => { const el = $(id); if (el) el.textContent = '—'; }); lastBytes = 0; lastAt = 0; }
   function averageMs(total, count) { return Number.isFinite(total) && count > 0 ? `${(total * 1000 / count).toFixed(1)} ms` : '—'; }
   function send(value) { if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(value)); }
   async function flushCandidates() { for (const c of candidates) await peer.addIceCandidate(c); candidates = []; }
@@ -18,8 +18,9 @@
   function connect() {
     disconnect(); label('CONNECTING');
     const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
-    socket = new WebSocket(`${scheme}://${location.host}/signal`);
-    socket.onmessage = async event => {
+    const ws = new WebSocket(`${scheme}://${location.host}/signal`); socket = ws;
+    ws.onmessage = async event => {
+      if (socket !== ws) return;
       try {
         const msg = JSON.parse(event.data);
         if (msg.type === 'offer') {
@@ -35,7 +36,8 @@
         } else if (msg.type === 'error') { label(`ERROR: ${msg.message || 'UNKNOWN'}`); }
       } catch (error) { label('SIGNAL ERROR'); console.error(error); }
     };
-    socket.onerror = () => label('SIGNAL ERROR'); socket.onclose = () => { if (!peer) label('DISCONNECTED'); };
+    ws.onerror = () => { if (socket === ws) label('SIGNAL ERROR'); };
+    ws.onclose = () => { if (socket === ws && !peer) label('DISCONNECTED'); };
   }
   function startStats() {
     clearInterval(timer); resetStats();

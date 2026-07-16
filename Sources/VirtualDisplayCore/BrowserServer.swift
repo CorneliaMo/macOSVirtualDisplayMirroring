@@ -35,7 +35,14 @@ public final class BrowserServer: @unchecked Sendable {
     }
 
     public func stop() {
-        queue.sync { if let viewer { disconnect(viewer) }; server.stop() }
+        queue.sync {
+            if let viewer {
+                self.viewer = nil
+                viewer.writeCloseFrame()
+                onDisconnected()
+            }
+            server.stop()
+        }
     }
 
     private func configureRoutes() {
@@ -57,12 +64,11 @@ public final class BrowserServer: @unchecked Sendable {
     private func connect(_ session: WebSocketSession) {
         let session = WebSocketBox(session)
         queue.async {
-            guard self.viewer == nil else {
-                if let message = try? SignalMessage(type: .error, message: "Another viewer is already connected").encoded() {
-                    session.value.writeText(message)
-                }
-                session.value.writeCloseFrame()
-                return
+            if let viewer = self.viewer, viewer !== session.value {
+                // A page refresh can connect the replacement socket before Swifter reports
+                // the old one as disconnected. The newest viewer always wins.
+                self.viewer = nil
+                self.onDisconnected()
             }
             self.viewer = session.value
             self.onConnected()
@@ -85,7 +91,6 @@ public final class BrowserServer: @unchecked Sendable {
     private func disconnect(_ session: WebSocketSession) {
         guard let viewer, viewer === session else { return }
         self.viewer = nil
-        session.writeCloseFrame()
         onDisconnected()
     }
 
@@ -97,7 +102,7 @@ public final class BrowserServer: @unchecked Sendable {
     private static func resource(_ name: String, extension ext: String, contentType: String) -> HttpResponse {
         guard let url = Bundle.module.url(forResource: name, withExtension: ext),
               let data = try? Data(contentsOf: url) else { return .internalServerError(nil) }
-        return .ok(.data(data, contentType: contentType))
+        return .ok(.data(data, contentType: contentType), ["Cache-Control": "no-store"])
     }
 }
 
