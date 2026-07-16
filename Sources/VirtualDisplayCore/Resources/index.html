@@ -14,7 +14,7 @@
       <div id="connection" class="connection" role="status" aria-live="polite">STANDBY</div>
     </header>
     <section class="stage" aria-label="Remote display video">
-      <video id="video" autoplay playsinline muted></video>
+      <video id="video" autoplay playsinline muted preload="auto"></video>
       <div id="empty" class="empty"><strong>WAITING FOR SIGNAL</strong><span>Connecting to the host…</span></div>
     </section>
     <aside class="rail" aria-label="Stream statistics">
@@ -24,7 +24,9 @@
       <div><span>CODEC</span><strong id="codec">—</strong></div>
       <div><span>JITTER</span><strong id="jitter">—</strong></div>
       <div><span>AVG DECODE</span><strong id="decode">—</strong></div>
-      <div><span>AVG PLAYOUT BUFFER</span><strong id="buffer">—</strong></div>
+      <div><span>RECENT PLAYOUT BUFFER</span><strong id="buffer">—</strong></div>
+      <div><span>BUFFER TARGET</span><strong id="buffer-target">—</strong></div>
+      <div><span>BUFFER MINIMUM</span><strong id="buffer-minimum">—</strong></div>
       <div><span>PACKETS LOST</span><strong id="lost">—</strong></div>
       <div><span>FRAMES DROPPED</span><strong id="dropped">—</strong></div>
       <button id="fullscreen" type="button">FULLSCREEN <kbd>F</kbd></button>
