@@ -5,8 +5,8 @@ import Foundation
 public final class StreamCoordinator {
     private let display = VirtualDisplaySession()
     private let capture = DisplayCapture()
-    private var encoder: H264Encoder?
-    private var server: HTTPStreamServer?
+    private var webRTC: WebRTCSession?
+    private var server: BrowserServer?
     private var snapshot = HealthSnapshot(displayID: 0, width: 0, height: 0, fps: 0, viewerConnected: false)
 
     public init() {}
@@ -20,27 +20,36 @@ public final class StreamCoordinator {
         guard width > 0, height > 0 else { display.stop(); throw StreamError.captureCreationFailed }
         snapshot = .init(displayID: displayID, width: width, height: height, fps: configuration.fps, viewerConnected: false)
         let state = SnapshotBox(snapshot)
-        let encoderBox = EncoderBox()
-        let server = HTTPStreamServer(health: { state.value }, onViewerConnected: { encoderBox.encoder?.requestKeyFrame() })
+        let sessionBox = SessionBox()
+        let serverBox = ServerBox()
+        let server = BrowserServer(health: { state.value }, onMessage: { sessionBox.session?.receive($0) },
+                                   onConnected: { state.viewerConnected = true; sessionBox.session?.start() },
+                                   onDisconnected: { state.viewerConnected = false; sessionBox.session?.stop() })
         do {
-            let encoder = try H264Encoder(width: width, height: height, fps: configuration.fps, bitrate: configuration.bitrate) { result in
-                switch result { case .success(let unit): server.publish(unit); case .failure(let error): fputs("Encoder: \(error)\n", stderr) }
-            }
-            encoderBox.encoder = encoder; self.encoder = encoder; self.server = server
+            let webRTC = WebRTCSession(bitrate: configuration.bitrate) { serverBox.server?.send($0) }
+            sessionBox.session = webRTC; serverBox.server = server
+            self.webRTC = webRTC; self.server = server
             try server.start(port: configuration.port)
             try await capture.start(displayID: displayID, width: width, height: height, fps: configuration.fps,
-                              showCursor: configuration.showCursor) { [weak encoder] buffer, pts in encoder?.encode(buffer, presentationTime: pts) }
+                              showCursor: configuration.showCursor) { [weak webRTC] buffer, pts in webRTC?.push(buffer, presentationTime: pts) }
             return snapshot
         } catch { await stop(); throw error }
     }
 
     public func stop() async {
-        server?.stop(); server = nil; await capture.stop(); encoder?.stop(); encoder = nil; display.stop()
+        server?.stop(); server = nil; await capture.stop(); webRTC?.stop(); webRTC = nil; display.stop()
     }
 }
 
 private final class SnapshotBox: @unchecked Sendable {
-    let value: HealthSnapshot
-    init(_ value: HealthSnapshot) { self.value = value }
+    private let lock = NSLock()
+    private var stored: HealthSnapshot
+    init(_ value: HealthSnapshot) { stored = value }
+    var value: HealthSnapshot { lock.withLock { stored } }
+    var viewerConnected: Bool {
+        get { lock.withLock { stored.viewerConnected } }
+        set { lock.withLock { stored.viewerConnected = newValue } }
+    }
 }
-private final class EncoderBox: @unchecked Sendable { var encoder: H264Encoder? }
+private final class SessionBox: @unchecked Sendable { var session: WebRTCSession? }
+private final class ServerBox: @unchecked Sendable { var server: BrowserServer? }

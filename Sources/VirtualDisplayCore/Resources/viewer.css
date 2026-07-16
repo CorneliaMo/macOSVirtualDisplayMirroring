@@ -1,0 +1,13 @@
+:root { color-scheme: dark; --ink:#d8ddd9; --muted:#747d78; --panel:#151918; --line:#303734; --green:#67f59a; --black:#090b0a; font-family:"Avenir Next","Helvetica Neue",sans-serif; }
+* { box-sizing:border-box; }
+body { margin:0; min-height:100vh; background:var(--black); color:var(--ink); }
+.shell { min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) 220px; grid-template-rows:58px minmax(0,1fr) 38px; }
+header { grid-column:1/-1; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; padding:0 20px; letter-spacing:.13em; font-size:12px; }
+.brand,.connection { display:flex; align-items:center; gap:10px; }.signal { width:8px; height:8px; background:var(--green); box-shadow:0 0 14px var(--green); border-radius:50%; }.connection { color:var(--muted); }.connection.live { color:var(--green); }
+.stage { position:relative; min-height:0; display:grid; place-items:center; overflow:hidden; background:#030403; }
+video { width:100%; height:100%; object-fit:contain; display:block; }.empty { position:absolute; display:grid; text-align:center; gap:12px; color:var(--muted); letter-spacing:.08em; }.empty strong { color:var(--ink); font-size:13px; }.live+.empty { display:none; }
+.rail { border-left:1px solid var(--line); padding:18px; display:flex; flex-direction:column; gap:20px; background:var(--panel); }.rail div { display:grid; gap:6px; }.rail span,footer { font-size:9px; letter-spacing:.12em; color:var(--muted); }.rail strong { font-family:Menlo,Monaco,monospace; font-size:14px; font-weight:500; }
+button { border:1px solid var(--line); background:transparent; color:var(--ink); font:inherit; font-size:10px; letter-spacing:.08em; padding:12px; text-align:left; cursor:pointer; }button:hover,button:focus-visible { border-color:var(--green); color:var(--green); }#fullscreen { margin-top:auto; }kbd { float:right; border:1px solid var(--line); padding:1px 4px; }
+footer { grid-column:1/-1; border-top:1px solid var(--line); padding:0 20px; display:flex; align-items:center; justify-content:space-between; }
+@media(max-width:720px){.shell{grid-template-columns:1fr;grid-template-rows:54px minmax(50vh,1fr) auto 34px}.rail{border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(2,1fr)}#fullscreen{margin-top:0}.rail button{align-self:end}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}

@@ -24,11 +24,10 @@ struct VirtualDisplayStreamCommand {
         print("Virtual display \(health.displayID) is streaming \(health.width)x\(health.height) @ \(health.fps) fps.")
         let addresses = localIPv4Addresses()
         for address in addresses {
-            let url = "http://\(address):\(configuration.port)/stream.h264"
-            print("Stream: \(url)")
-            print("Player: ffplay -fflags nobuffer -flags low_delay -f h264 \(url)")
+            let url = "http://\(address):\(configuration.port)/"
+            print("Viewer: \(url)")
         }
-        if addresses.isEmpty { print("Stream: http://<Mac-IP>:\(configuration.port)/stream.h264") }
+        if addresses.isEmpty { print("Viewer: http://<Mac-IP>:\(configuration.port)/") }
         print("Health: http://127.0.0.1:\(configuration.port)/healthz")
         print("Press Ctrl-C to stop.")
 

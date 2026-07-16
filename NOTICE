@@ -9,3 +9,7 @@ patterns derived from these MIT-licensed projects:
 Their copyright notices are preserved in this project's LICENSE file.
 Deskreen is AGPL-3.0 and was consulted only for high-level architectural
 research; its code is not incorporated into this implementation.
+
+This project depends on WebRTC binaries packaged by stasel/WebRTC and on the
+Swifter HTTP/WebSocket server. Both are distributed under BSD 3-Clause terms;
+their full license notices are available in the dependency distributions.

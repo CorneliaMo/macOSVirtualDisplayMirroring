@@ -14,6 +14,19 @@ public struct StreamConfiguration: Sendable, Equatable {
     public init() {}
 }
 
+public struct HealthSnapshot: Sendable {
+    public var displayID: UInt32
+    public var width: Int
+    public var height: Int
+    public var fps: Int
+    public var viewerConnected: Bool
+
+    public init(displayID: UInt32, width: Int, height: Int, fps: Int, viewerConnected: Bool) {
+        self.displayID = displayID; self.width = width; self.height = height
+        self.fps = fps; self.viewerConnected = viewerConnected
+    }
+}
+
 public enum CLIParseResult: Equatable { case run(StreamConfiguration); case help }
 
 public enum CLIError: Error, LocalizedError, Equatable {

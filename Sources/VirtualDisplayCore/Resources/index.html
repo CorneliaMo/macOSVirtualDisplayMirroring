@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Virtual Display</title>
+  <link rel="stylesheet" href="/viewer.css">
+  <script src="/viewer.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="brand"><span class="signal" aria-hidden="true"></span>VIRTUAL DISPLAY</div>
+      <div id="connection" class="connection" role="status" aria-live="polite">STANDBY</div>
+    </header>
+    <section class="stage" aria-label="Remote display video">
+      <video id="video" autoplay playsinline muted></video>
+      <div id="empty" class="empty"><strong>WAITING FOR SIGNAL</strong><span>Connecting to the host…</span></div>
+    </section>
+    <aside class="rail" aria-label="Stream statistics">
+      <div><span>RESOLUTION</span><strong id="resolution">—</strong></div>
+      <div><span>FRAME RATE</span><strong id="fps">—</strong></div>
+      <div><span>THROUGHPUT</span><strong id="bitrate">—</strong></div>
+      <div><span>JITTER</span><strong id="jitter">—</strong></div>
+      <div><span>PACKETS LOST</span><strong id="lost">—</strong></div>
+      <button id="fullscreen" type="button">FULLSCREEN <kbd>F</kbd></button>
+      <button id="reconnect" type="button">RECONNECT</button>
+    </aside>
+    <footer><span>UNAUTHENTICATED HTTP SIGNALING / TRUSTED LAN ONLY</span><span>WEBRTC / DIRECT</span></footer>
+  </main>
+</body>
+</html>
