@@ -29,8 +29,8 @@ public final class BrowserServer: @unchecked Sendable {
     public func send(_ message: SignalMessage) {
         queue.async {
             guard let viewer = self.viewer else { return }
-            do { try viewer.writeText(message.encoded()) }
-            catch { self.disconnect(viewer) }
+            guard let payload = try? message.encoded() else { return }
+            viewer.writeText(payload)
         }
     }
 
@@ -96,7 +96,7 @@ public final class BrowserServer: @unchecked Sendable {
 
     private static func resource(_ name: String, extension ext: String, contentType: String) -> HttpResponse {
         guard let url = Bundle.module.url(forResource: name, withExtension: ext),
-              let data = try? Data(contentsOf: url) else { return .internalServerError }
+              let data = try? Data(contentsOf: url) else { return .internalServerError(nil) }
         return .ok(.data(data, contentType: contentType))
     }
 }
