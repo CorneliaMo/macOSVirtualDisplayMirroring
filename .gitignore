@@ -1,0 +1,11 @@
+# Locally cloned research repositories
+/references/
+
+# SwiftPM and Xcode build products
+/.build/
+/DerivedData/
+*.xcuserstate
+xcuserdata/
+
+# macOS metadata
+.DS_Store
