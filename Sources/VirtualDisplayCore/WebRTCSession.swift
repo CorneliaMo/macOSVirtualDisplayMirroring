@@ -46,12 +46,12 @@ public final class WebRTCSession: NSObject, @unchecked Sendable {
                         if let error { self.fail(error.localizedDescription); return }
                         self.remoteDescriptionSet = true
                         let candidates = self.pendingCandidates; self.pendingCandidates.removeAll()
-                        candidates.forEach { peer.add($0) }
+                        candidates.forEach { self.add($0, to: peer) }
                     }
                 }
             case .candidate:
                 let candidate = RTCIceCandidate(sdp: message.candidate!, sdpMLineIndex: message.sdpMLineIndex!, sdpMid: message.sdpMid)
-                if self.remoteDescriptionSet { peer.add(candidate) } else { self.pendingCandidates.append(candidate) }
+                if self.remoteDescriptionSet { self.add(candidate, to: peer) } else { self.pendingCandidates.append(candidate) }
             default: break
             }
         }
@@ -82,7 +82,10 @@ public final class WebRTCSession: NSObject, @unchecked Sendable {
         configuration.bundlePolicy = .maxBundle
         configuration.continualGatheringPolicy = .gatherContinually
         let constraints = RTCMediaConstraints(mandatoryConstraints: nil, optionalConstraints: nil)
-        let peer = factory.peerConnection(with: configuration, constraints: constraints, delegate: self)
+        guard let peer = factory.peerConnection(with: configuration, constraints: constraints, delegate: self) else {
+            fail("peer connection creation failed")
+            return
+        }
         self.peer = peer
         let track = factory.videoTrack(with: source, trackId: "virtual-display-video")
         let sender = peer.add(track, streamIds: ["virtual-display"])
@@ -100,6 +103,16 @@ public final class WebRTCSession: NSObject, @unchecked Sendable {
                         self.signal(.init(type: .offer, sdp: description.sdp))
                     }
                 }
+            }
+        }
+    }
+
+    private func add(_ candidate: RTCIceCandidate, to peer: RTCPeerConnection) {
+        peer.add(candidate) { error in
+            guard let error else { return }
+            self.queue.async {
+                guard self.peer === peer else { return }
+                self.fail("ICE candidate rejected: \(error.localizedDescription)")
             }
         }
     }
