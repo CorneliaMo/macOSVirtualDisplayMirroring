@@ -1,6 +1,9 @@
 # Locally cloned research repositories
 /references/
 
+# Local product and implementation notes
+/documents/
+
 # SwiftPM and Xcode build products
 /.build/
 /DerivedData/
