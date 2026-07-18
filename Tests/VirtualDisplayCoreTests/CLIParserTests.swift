@@ -20,7 +20,8 @@ import Testing
     #expect(value.backend == .native); #expect(value.chromiumDirectory == "/tmp/helper")
 }
 
-@Test(arguments: [["--width", "1279"], ["--height", "0"], ["--port", "65536"], ["--fps"]])
+@Test(arguments: [["--width", "1279"], ["--height", "0"], ["--port", "65536"], ["--fps"], ["--fps", "241"],
+                  ["--bitrate", "99999"], ["--bitrate", "1000000001"]])
 func rejectsInvalid(_ arguments: [String]) { #expect(throws: Error.self) { try CLIParser.parse(arguments) } }
 
 @Test func rejectsUnknownBackend() { #expect(throws: Error.self) { try CLIParser.parse(["--backend", "other"]) } }

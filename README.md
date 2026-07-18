@@ -18,9 +18,9 @@ swift build -c release
 .build/release/virtual-display-stream --backend chromium --width 1920 --height 1080 --fps 60 --port 8080
 ```
 
-The command prints viewer URLs for active non-loopback IPv4 interfaces. Open `http://<Mac-IP>:8080/` on another device in the trusted LAN. The page connects automatically and exposes live WebRTC receiver statistics—including codec, decode time, recent-interval playout-buffer delay, browser target/minimum buffer delay when available, and dropped frames—fullscreen (button or `F`), and manual reconnect controls.
+The command prints viewer URLs for active non-loopback IPv4 interfaces. Open `http://<Mac-IP>:8080/` on another device in the trusted LAN. The page connects automatically and exposes live sender/receiver diagnostics—including codec, resolution, throughput, recent playout delay, RTT, loss, QP, Chromium's quality-limitation reason, and the latest Auto decision—plus fullscreen, reconnect, and diagnostics-copy controls.
 
-The helper uses Chromium `desktopCapturer`/`getUserMedia` and `simple-peer`, with 100%, 50%, and motion-sensitive Auto quality modes. Use `--chromium-directory <path>` when launching outside the repository root. The earlier ScreenCaptureKit/libwebrtc path remains available through `--backend native`.
+The helper uses Chromium `desktopCapturer`/`getUserMedia` and `simple-peer`, with manual 100%/50% modes and an experimental Auto mode. Auto combines motion, receiver buffering/loss, sender RTT, encoding time, and Chromium limitation signals; it currently adjusts sender bitrate/FPS while retaining native capture resolution. Use `--chromium-directory <path>` when launching outside the repository root. The earlier ScreenCaptureKit/libwebrtc path remains available through `--backend native`.
 
 If Electron reports an incomplete installation, rerun `npm install` in `ChromiumStreamer`. The launcher uses Electron's supported CLI entry point instead of assuming a version-specific `.app` layout.
 

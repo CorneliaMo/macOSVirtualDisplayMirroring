@@ -94,6 +94,8 @@ public enum CLIParser {
         }
         guard value.width <= Int(UInt32.max) else { throw CLIError.invalidValue("--width", String(value.width)) }
         guard value.height <= Int(UInt32.max) else { throw CLIError.invalidValue("--height", String(value.height)) }
+        guard value.fps <= 240 else { throw CLIError.invalidValue("--fps", String(value.fps)) }
+        guard (100_000...1_000_000_000).contains(value.bitrate) else { throw CLIError.invalidValue("--bitrate", String(value.bitrate)) }
         guard value.width.isMultiple(of: 2) else { throw CLIError.invalidValue("--width", String(value.width)) }
         guard value.height.isMultiple(of: 2) else { throw CLIError.invalidValue("--height", String(value.height)) }
         guard !value.name.isEmpty else { throw CLIError.invalidValue("--name", value.name) }

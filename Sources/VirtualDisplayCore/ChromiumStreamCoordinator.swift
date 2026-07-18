@@ -27,7 +27,8 @@ public final class ChromiumStreamCoordinator {
             let child = Process()
             child.executableURL = URL(fileURLWithPath: "/usr/bin/env")
             child.arguments = ["node", electronCLI.path, directory.path, "--display-id", String(displayID), "--port", String(configuration.port),
-                               "--width", String(width), "--height", String(height), "--fps", String(configuration.fps)]
+                               "--width", String(width), "--height", String(height), "--fps", String(configuration.fps),
+                               "--bitrate", String(configuration.bitrate)]
             child.standardOutput = FileHandle.standardOutput; child.standardError = FileHandle.standardError
             try child.run(); process = child
             try await Task.sleep(for: .milliseconds(750))

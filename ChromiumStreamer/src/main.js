@@ -34,7 +34,7 @@ async function createHost() {
     }
   });
   await hostWindow.loadFile(path.join(__dirname, 'host.html'), { query: {
-    sourceId: source.id, width: String(options.width), height: String(options.height), fps: String(options.fps)
+    sourceId: source.id, width: String(options.width), height: String(options.height), fps: String(options.fps), bitrate: String(options.bitrate)
   }});
 }
 
@@ -45,8 +45,11 @@ function startServer() {
   web.use((_request, response, next) => { response.setHeader('Cache-Control', 'no-store'); next(); });
   web.get('/healthz', (_request, response) => response.json({
     backend: 'chromium', displayID: Number(options.displayId), width: options.width, height: options.height,
-    fps: options.fps, viewerConnected: Boolean(activeViewer && activeViewer.connected), hostReady
+    fps: options.fps, bitrate: options.bitrate, viewerConnected: Boolean(activeViewer && activeViewer.connected), hostReady
   }));
+  web.get('/configuration.js', (_request, response) => {
+    response.type('application/javascript').send(`window.streamConfiguration=${JSON.stringify({ bitrate: options.bitrate, fps: options.fps })};`);
+  });
   web.use(express.static(path.join(__dirname, '..', 'public')));
   web.get('/vendor/simplepeer.min.js', (_request, response) => {
     response.sendFile(path.join(__dirname, '..', 'node_modules', 'simple-peer', 'simplepeer.min.js'));

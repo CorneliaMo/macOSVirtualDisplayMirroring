@@ -8,7 +8,7 @@
     "build": "esbuild src/host-renderer.js --bundle --platform=browser --outfile=dist/host-renderer.js && esbuild src/viewer.js --bundle --platform=browser --outfile=dist/viewer.js",
     "start": "npm run build && electron src/main.js",
     "test": "node --test test/*.test.js",
-    "check": "node --check src/main.js && node --check src/preload.js && node --check src/quality-policy.js && npm test"
+    "check": "node --check src/main.js && node --check src/preload.js && node --check src/quality-profiles.js && node --check src/protocol.js && node --check src/webrtc-stats.js && node --check src/adaptive-quality-controller.js && npm test"
   },
   "dependencies": {
     "electron": "43.1.1",
